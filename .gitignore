@@ -33,3 +33,4 @@ desktop.ini
 
 # Tauri / 其他
 *.user
+# 构建缓存v.n/.vite/
