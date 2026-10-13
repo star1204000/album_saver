@@ -173,7 +173,10 @@ export async function hydrate() {
   // —— 云模式：全量拉取 + Realtime 订阅 ——
   if (inCloud()) {
     try {
-      state.photos = await fetchAllPhotos()
+      const rows = await fetchAllPhotos()
+      // 同 id 去重保险（历史竞态可能残留重复行；Map 按 id 保留最后一条）
+      state.photos = [...new Map(rows.map(r => [r.id, r])).values()]
+        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
       attachRealtime()
       bus.emit('cloud:status', { mode: 'cloud', state: 'connected' })
       return true
@@ -301,7 +304,10 @@ async function addPhotosCloud(files) {
         sortOrder: nextSort + ok
       })
       markPending(item.id)                                          // 抑制自己的 INSERT 回声
-      state.photos.push(item)
+      // 竞态防护：Realtime 的 INSERT 推送可能先于本 REST 响应到达并已插入同 id 项，
+      // 无脑 push 会造成 state.photos 出现重复项 → 删除/移动/渲染全部错乱。
+      // （用户实测踩坑：批量上传后"无法删除、无法移动"即此因）
+      if (!state.photos.some(p => p.id === item.id)) state.photos.push(item)
       ok++
     } catch (err) {
       console.warn('照片上传失败', file.name, err)

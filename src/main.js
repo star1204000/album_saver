@@ -21,6 +21,7 @@ import { initSidebar } from './modules/sidebar.js'
 import { initStage } from './modules/stage.js'
 import { exportPoster, exportJSON, importJSON } from './modules/export.js'
 import { initTauriTitlebar } from './modules/tauri-titlebar.js'
+import { autoFillLocations } from './modules/geo.js'
 
 /* ---------------- 演示数据（首次访问预填，开箱即用） ---------------- */
 const DEMO_PHOTOS = [
@@ -391,6 +392,7 @@ function confirmDelete(btn, id) {
     btn.dataset.armed = '1'
     btn.classList.add('confirm')
     btn.title = '再点一次确认删除'
+    toast('再点一次「删除」确认移除照片', 'warn')
     setTimeout(() => { btn.dataset.armed = ''; btn.classList.remove('confirm'); btn.title = '删除' }, 2400)
   }
 }
@@ -468,6 +470,7 @@ async function init() {
 
   bus.on('photos:changed', renderGallery)
   bus.on('photo:updated', ({ id }) => renderCard(id))   // 远端实时更新 → 单卡片重绘
+  bus.on('photos:changed', e => { if (e.added && state.cloudReady) autoFillLocations() })   // 新照片自动补地名
 
   // 云初始化：探测 .env 配置（Supabase 全配齐 → 云同步；否则本地模式）
   const cloudInit = await initCloud()
@@ -475,6 +478,7 @@ async function init() {
 
   // 数据恢复（云模式：全量拉取 + Realtime 订阅；本地模式：IndexedDB + localStorage）
   const restored = await hydrate()
+  if (state.cloudReady) autoFillLocations()   // 有 GPS 但地点为空的老照片也自动补全
 
   if (!restored) {
     if (cloudInit.mode === 'cloud') {

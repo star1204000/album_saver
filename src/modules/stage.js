@@ -40,7 +40,7 @@ function slideHTML(p, i, total) {
       <figure class="slide-figure"><img class="slide-img" alt="${esc(p.location) || '照片'}" data-lazysrc></figure>
       <aside class="slide-card">
         <p class="sc-date">${esc(p.date) || '· · ·'}</p>
-        <h3 class="sc-loc">${esc(p.location) || '未命名地点'}</h3>
+        ${p.location ? `<h3 class="sc-loc">${esc(p.location)}</h3>` : ''}
         <div class="sc-divider"></div>
         ${p.caption ? `<p class="sc-caption">“${esc(p.caption)}”</p>` : ''}
         ${allTags.length ? `<div class="sc-tags">${p.tags.map(t => `<span class="sc-chip">${esc(t)}</span>`).join('')}${p.customTags.map(t => `<span class="sc-chip custom">${esc(t)}</span>`).join('')}</div>` : ''}
