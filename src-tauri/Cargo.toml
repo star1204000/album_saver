@@ -1,0 +1,27 @@
+[package]
+name = "summer-memory-album"
+version = "2.0.0"
+description = "夏日记忆 · Summer Memories —— 暑假照片总结展映（多端实时协同）"
+authors = ["Summer Memory"]
+edition = "2021"
+
+# Tauri v2 库结构：main.rs 仅作启动壳，逻辑在 lib.rs（便于未来 mobile 复用）
+[lib]
+name = "summer_memory_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+# 桌面应用发布优化：体积优先（LTO + strip），构建耗时换 30%+ 体积缩减
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

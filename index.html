@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#0B0D10">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <title>Summer Memories</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%9E%3C/text%3E%3C/svg%3E">
+</head>
+<body class="font-body">
+
+  <!-- ==================== 顶部导航 ==================== -->
+  <header class="app-header">
+    <div class="header-inner">
+      <!-- Tauri 无边框窗口拖拽区（decorations:false）：鼠标按住头部空白处可拖动窗口 -->
+      <div class="brand" data-tauri-drag-region>
+        <span class="brand-mark"><i data-lucide="sun"></i></span>
+        <div>
+          <span class="brand-cn">夏日记忆</span>
+          <span class="brand-en">SUMMER MEMORY ALBUM</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="conn-badge" class="conn-badge local" title="未配置云服务，数据仅存本机浏览器">
+          <span class="conn-dot"></span><span class="conn-txt">本地模式</span>
+        </button>
+        <button class="btn btn-ghost" id="btn-import" title="导入 JSON 备份"><i data-lucide="file-json"></i><span class="btn-txt">导入</span></button>
+        <button class="btn btn-ghost" id="btn-export-json" title="导出元数据与图片数据（JSON 备份）"><i data-lucide="download"></i><span class="btn-txt">JSON</span></button>
+        <button class="btn btn-ghost" id="btn-export-poster" title="导出拍立得风格长图海报（PNG）"><i data-lucide="image"></i><span class="btn-txt">海报</span></button>
+        <button class="icon-btn" id="btn-theme" data-theme-icon title="切换 浅色 / 黑金 主题"><i data-lucide="moon"></i></button>
+        <button class="btn btn-primary" id="btn-present"><i data-lucide="play"></i><span>进入展映</span></button>
+        <!-- Tauri 窗口控制按钮（仅桌面壳内显示；浏览器/PWA 下隐藏） -->
+        <span id="tauri-window-controls" class="tauri-controls" hidden>
+          <button class="tauri-ctl" id="tauri-minimize" title="最小化"><i data-lucide="minus"></i></button>
+          <button class="tauri-ctl" id="tauri-maximize" title="最大化 / 还原"><i data-lucide="square"></i></button>
+          <button class="tauri-ctl close" id="tauri-close" title="关闭"><i data-lucide="x"></i></button>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== 编辑视图 ==================== -->
+  <main id="edit-view" class="app-main">
+    <section class="hero text-center">
+      <p class="hero-eyebrow">SUMMER 2026 · MEMORY ALBUM</p>
+      <h2 class="hero-title" id="hero-title">把夏天，装进一本相册</h2>
+      <p class="hero-sub" id="hero-sub">上传照片，写下当时的心情，然后进入沉浸式展映</p>
+    </section>
+
+    <section id="dropzone" class="dropzone" role="button" tabindex="0" aria-label="上传照片">
+      <div class="dz-icon"><i data-lucide="image-plus"></i></div>
+      <p class="dz-main">拖拽照片到这里，或 <span class="link">点击选择</span></p>
+      <p class="dz-hint">支持批量上传 JPG / PNG / WEBP · 自动读取 EXIF 拍摄时间与 GPS · 数据仅存本机，绝不上传</p>
+    </section>
+
+    <section id="gallery" class="gallery-grid mt-8" aria-label="照片编辑列表"></section>
+
+    <footer class="site-footer">
+      <p>所有数据自动保存在本地浏览器 · <span id="clear-demo" class="link" hidden>清除示例照片</span></p>
+    </footer>
+  </main>
+
+  <!-- ==================== 全屏展映视图 ==================== -->
+  <!-- 语义化结构：aside 侧边导航列表 + 主舞台（由 sidebar.js / stage.js 渲染填充） -->
+  <div id="present-view" hidden>
+    <aside id="present-sidebar" class="present-sidebar" aria-label="照片列表导航，悬停切换">
+      <div class="sb-head">
+        <p class="sb-title">夏日记忆</p>
+        <p class="sb-sub">SUMMER MEMORIES · <span id="sb-count"></span></p>
+      </div>
+      <div id="sb-list" class="sb-list" tabindex="-1"></div>
+      <div class="sb-foot">悬停缩略图切换 · Esc 返回编辑</div>
+    </aside>
+
+    <div id="present-stage" class="present-stage">
+      <div id="slides-track" class="slides-track"></div>
+
+      <div class="present-topbar">
+        <button class="icon-btn" id="btn-exit-present" title="返回编辑（Esc）"><i data-lucide="x"></i></button>
+        <button class="icon-btn" id="btn-theme-present" data-theme-icon title="切换主题"><i data-lucide="moon"></i></button>
+      </div>
+
+      <button class="present-nav prev" title="上一张"><i data-lucide="chevron-left"></i></button>
+      <button class="present-nav next" title="下一张"><i data-lucide="chevron-right"></i></button>
+
+      <div id="present-progress" class="present-progress"></div>
+      <nav id="filmstrip" class="filmstrip" aria-label="胶片缩略图导航"></nav>
+      <div id="present-hint" class="present-hint">↑ ↓ / 滚轮 切换 · 悬停左侧缩略图快速跳转 · Esc 返回</div>
+    </div>
+  </div>
+
+  <!-- 海报构建容器（屏幕外，供 html2canvas 渲染） -->
+  <div id="poster-canvas" class="poster-canvas" aria-hidden="true"></div>
+
+  <!-- Toast 容器 -->
+  <div id="toast-root" aria-live="polite"></div>
+
+  <!-- 隐藏的文件输入 -->
+  <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp,image/*" multiple hidden>
+  <input type="file" id="replace-input" accept="image/jpeg,image/png,image/webp,image/*" hidden>
+  <input type="file" id="import-input" accept=".json,application/json" hidden>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
