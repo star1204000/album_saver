@@ -1,4 +1,4 @@
-# 依赖
+﻿# 依赖
 node_modules/
 
 # 构建产物
@@ -33,4 +33,6 @@ desktop.ini
 
 # Tauri / 其他
 *.user
-# 构建缓存v.n/.vite/
+
+# 构建缓存
+.vite/
