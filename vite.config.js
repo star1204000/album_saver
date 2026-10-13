@@ -20,8 +20,12 @@ import { VitePWA } from 'vite-plugin-pwa'
  *   'WHEN_REQUIRED'，端到端 PUT 200 验证通过（SigV4 签名头齐全）。
  */
 const host = process.env.TAURI_DEV_HOST
+// 部署基路径：桌面端 / 本地 dev 用 '/'
+// GitHub Pages 子路径部署时设置 VITE_BASE=/album_saver/（构建前 export）
+const base = process.env.VITE_BASE || '/'
 
 export default defineConfig({
+  base,
   clearScreen: false,
   server: {
     host: '0.0.0.0',        // 手机端局域网联调（手机相机直传的关键）
@@ -44,11 +48,12 @@ export default defineConfig({
         background_color: '#0B0D10',
         display: 'standalone',
         orientation: 'any',
-        start_url: '/',
+        start_url: base === '/' ? '/' : base,
+        scope: base === '/' ? '/' : base,
         icons: [
-          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+          { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
         ]
       },
       workbox: {
@@ -57,7 +62,7 @@ export default defineConfig({
         // 本地模式免下载 500KB+，云模式在线使用时走网络
         globIgnores: ['**/vendorCloud-*.js'],
         // 离线基础缓存策略：应用壳（index.html）离线可达 + 静态资源版本化预缓存
-        navigateFallback: '/index.html',
+        navigateFallback: base === '/' ? '/index.html' : `${base}index.html`,
         navigateFallbackDenylist: [/^\/assets\/vendorCloud-/],   // 云 SDK 不做离线回退（按需在线取）
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         runtimeCaching: [
